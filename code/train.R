@@ -20,8 +20,8 @@ trainDF = data.frame(
   created = as.character(unlist(train$created)),
   description = as.character(unlist(train$description)),
   display_address = as.character(unlist(train$display_address)),
-  latitude = as.numeric(unlist(train$latitude)),
-  longitude = as.numeric(unlist(train$longitude)),
+  latitude = as.numeric(as.character(unlist(train$latitude))),
+  longitude = as.numeric(as.character(unlist(train$longitude))),
   listing_id = as.character(unlist(train$listing_id)),
   manager_id = unlist(train$manager_id),
   price = as.numeric(unlist(train$price)),
@@ -34,11 +34,13 @@ trainDF$description = as.character(trainDF$description)
 trainDF$display_address = as.character(trainDF$display_address)
 trainDF$street_address = as.character(trainDF$street_address)
 trainDF$listing_id = as.character(trainDF$listing_id)
+trainDF$latitude = as.numeric(as.character(trainDF$latitude))
+trainDF$longitude = as.numeric(as.character(trainDF$longitude))
 
 # Convert blank values in complete DF, 0 in building_id to NA
 trainDF = as.data.frame(apply(trainDF, 2, function(x) gsub('^[:blank:]*$', NA, trimws(x))))
 trainDF$building_id = gsub('^[0]$', NA, trainDF$building_id)
-trainDF$interest_level = factor(trainDF$interest_level, levels(trainDF$interest_level)[c(2, 3, 1)])
+trainDF$interest_level = factor(trainDF$interest_level, levels(trainDF$interest_level)[c(1, 3, 2)])
 
 # Create separate features DF
 features = data.frame(
@@ -233,13 +235,14 @@ features[is.na(features)] <- 0
 cols = colnames(features)[3:length(colnames(features))]
 new_features = aggregate(features[cols], by=features['aptID'], FUN=max)
 apartments_features <- left_join(trainDF, new_features, by = 'aptID')
-apartments_features[, 22:54][is.na(apartments_features[, 22:54])] <- 0
+apartments_features[, (ncol(trainDF)+1):ncol(apartments_features)][is.na(apartments_features[, (ncol(trainDF)+1):ncol(apartments_features)])] <- 0
 
-saveRDS(apartments_features, 'D:/train-v5.rds')
-write.csv(apartments_features, 'D:/train-v5.csv', row.names=F)
-
-# saveRDS(features, 'D:/features-v2.rds')
-# write.csv(features, 'D:/features-v2.csv', row.names=F)
+# saveRDS(apartments_features, 'D:/train-v5.rds')
+# save(apartments_features, file='D:/train-v5.rda')
+# write.csv(apartments_features, 'D:/train-v5.csv', row.names=F)
 #
-# saveRDS(photos, 'D:/photos-v2.rds')
-# write.csv(photos, 'D:/photos-v2.csv', row.names=F)
+# saveRDS(features, 'D:/features-train-v2.rds')
+# write.csv(features, 'D:/features-train-v2.csv', row.names=F)
+#
+# saveRDS(photos, 'D:/photos-train-v2.rds')
+# write.csv(photos, 'D:/photos-train-v2.csv', row.names=F)
