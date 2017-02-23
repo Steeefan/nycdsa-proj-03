@@ -73,32 +73,34 @@ monthweeks.character <- function(x) {
 testDF = testDF %>%
   mutate(
     created = as.POSIXct(strptime(created, tz = tz, format = tsFormat)),
-
+    
     created.Day = day(created),
     created.Month = month(created),
     created.Year = year(created),
-
+    
     created.Date = make_date(created.Year, created.Month, created.Day),
-
+    
     created.WDay = wday(created),
     created.WDayLbl = substr(wday(created, label = T), 1, 3),  # week starts on Sun in the US!
     created.Week = week(created),
-
+    
     created.Hour = hour(created),
-
+    
     created.Yday = yday(created),
     created.MWeek = monthweeks(created.Date)
   )
 
 testDF = left_join(
-   testDF,
-   photos %>% group_by(aptID) %>% summarise(photoCount = n()),
-   by='aptID')
+  testDF,
+  photos %>% group_by(aptID) %>% summarise(photoCount = n()),
+  by='aptID'
+)
 
 testDF = left_join(
-   testDF,
-   features %>% group_by(aptID) %>% summarise(featureCount = n()),
-   by='aptID')
+  testDF,
+  features %>% group_by(aptID) %>% summarise(featureCount = n()),
+  by='aptID'
+)
 
 testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
 testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
