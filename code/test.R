@@ -8,6 +8,9 @@ library(mice)
 library(lubridate)
 library(tidyr)
 
+# Load train dataset
+training_set <- get(load('data/train-v5.rda'))
+
 # Read from JSON
 test = fromJSON(file = 'data/test.json')
 
@@ -87,20 +90,18 @@ testDF = testDF %>%
     created.MWeek = monthweeks(created.Date)
   )
 
-# testDF = left_join(
-#   testDF,
-#   photos %>% group_by(aptID) %>% summarise(photoCount = n()),
-#   by='aptID'
-# )
-#
-# testDF = left_join(
-#   testDF,
-#   features %>% group_by(aptID) %>% summarise(featureCount = n()),
-#   by='aptID'
-# )
+testDF = left_join(
+   testDF,
+   photos %>% group_by(aptID) %>% summarise(photoCount = n()),
+   by='aptID')
 
-# testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
-# testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
+testDF = left_join(
+   testDF,
+   features %>% group_by(aptID) %>% summarise(featureCount = n()),
+   by='aptID')
+
+testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
+testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
 #
 # manager = left_join(
 #   spread(
@@ -235,8 +236,6 @@ apartments_features <- left_join(testDF, new_features, by = 'aptID')
 apartments_features[, (ncol(testDF)+1):ncol(apartments_features)][is.na(apartments_features[, (ncol(testDF)+1):ncol(apartments_features)])] <- 0
 
 #Joining columns with proportions of High, Medium, Low for BuildingID, ManagerID
-# Load train dataset
-training_set <- get(load('data/train-v5.rda'))
 # include manager Pct information
 cols_mgr <- c("mgrHighPct" ,"mgrMediumPct", "mgrLowPct" ,  "manager_id")
 training_set_mgr_Pct <- training_set[,cols_mgr]
