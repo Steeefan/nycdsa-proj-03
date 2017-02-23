@@ -2,16 +2,6 @@
 library(h2o)
 h2o.init(nthreads=-1)
 
-# logloss function
-multiloss <- function(predicted, actual){
-  
-  predicted <- apply(predicted, c(1,2), function(x) max(min(x, 1-10^(-15)), 10^(-15)))
-  
-  score <- -sum(actual*log(predicted))/nrow(predicted)
-  
-  return(score)
-}
-
 #load training dataset
 
 apartments = readRDS('data/train-v5.rds')
@@ -22,10 +12,11 @@ apartments$bedrooms = as.numeric(as.character(apartments$bedrooms))
 apartments$latitude = as.numeric(as.character(apartments$latitude))
 apartments$longitude = as.numeric(as.character(apartments$longitude))
 
-################################## baseline: 0.4048201 (80/20 split train) 0.7782 Kaggle Score
+################################## baseline: 0.4048201 (80/20 split train) 0.7782 Kaggle Score (NO FEATURE OR PHOTO COUNT)
 cols = c('bathrooms', 'bedrooms', 'price','latitude', 
          'longitude', 'mgrHighPct', 'mgrMediumPct', 
-         'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct')
+         'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct',
+         "photoCount","featureCount")
 cols = c(cols,colnames(apartments)[34:54])
 
 outcome = 'interest_level'
@@ -76,14 +67,16 @@ preds <- as.data.table(h2o.predict(gbm_full, test))
 testPreds <- data.table(listing_id = unlist(temp$listing_id), preds[,.(high, medium, low)])
 
 #write file for submission
-fwrite(testPreds, "try4.csv")
+fwrite(testPreds, "try5.csv")
 
 
+# 0.403
 ##################################### TESTING ZONE ##############################
 
 cols = c('bathrooms', 'bedrooms', 'price','latitude', 
-         'longitude', 'mgrHighPct', 'mgrMediumPct', "created.WDay",
-         'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct')
+         'longitude', 'mgrHighPct', 'mgrMediumPct', 
+         'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct',
+         "photoCount","featureCount")
 cols = c(cols,colnames(apartments)[34:54])
 cols = c(cols, colnames(apartments)[15:24])
 
