@@ -98,7 +98,7 @@ testDF = testDF %>%
 #   features %>% group_by(aptID) %>% summarise(featureCount = n()),
 #   by='aptID'
 # )
-#
+
 # testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
 # testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
 #
@@ -245,6 +245,10 @@ apartments_features <- left_join(apartments_features, unique(training_set_mgr_Pc
 cols_bldg <- c("bldgHighPct", "bldgMediumPct" ,"bldgLowPct","building_id")
 training_set_bldg_Pct <- training_set[,cols_bldg]
 apartments_features <- left_join(apartments_features, unique(training_set_bldg_Pct), by="building_id")
+
+#NA values on Pct (set it all equal)
+apartments_features[(ncol(apartments_features)-5):ncol(apartments_features)][is.na(apartments_features[(ncol(apartments_features)-5):ncol(apartments_features)])] <- 1/3
+
 
 # saveRDS(apartments_features, 'data/test-v6.rds')
 # save(apartments_features, file='data/test-v6.rda')
