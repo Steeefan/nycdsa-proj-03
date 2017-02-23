@@ -87,20 +87,20 @@ testDF = testDF %>%
     created.MWeek = monthweeks(created.Date)
   )
 
-# testDF = left_join(
-#   testDF,
-#   photos %>% group_by(aptID) %>% summarise(photoCount = n()),
-#   by='aptID'
-# )
-#
-# testDF = left_join(
-#   testDF,
-#   features %>% group_by(aptID) %>% summarise(featureCount = n()),
-#   by='aptID'
-# )
+testDF = left_join(
+  testDF,
+  photos %>% group_by(aptID) %>% summarise(photoCount = n()),
+  by='aptID'
+)
 
-# testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
-# testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
+testDF = left_join(
+  testDF,
+  features %>% group_by(aptID) %>% summarise(featureCount = n()),
+  by='aptID'
+)
+
+testDF$featureCount = ifelse(is.na(testDF$featureCount), 0, testDF$featureCount)
+testDF$photoCount = ifelse(is.na(testDF$photoCount), 0, testDF$photoCount)
 #
 # manager = left_join(
 #   spread(
