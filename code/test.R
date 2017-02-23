@@ -234,8 +234,20 @@ new_features = aggregate(features[cols], by=features['aptID'], FUN=max)
 apartments_features <- left_join(testDF, new_features, by = 'aptID')
 apartments_features[, (ncol(testDF)+1):ncol(apartments_features)][is.na(apartments_features[, (ncol(testDF)+1):ncol(apartments_features)])] <- 0
 
-# saveRDS(apartments_features, 'D:/test-v5.rds')
-# save(apartments_features, file='D:/test-v5.rda')
+#Joining columns with proportions of High, Medium, Low for BuildingID, ManagerID
+# Load train dataset
+training_set <- get(load('data/train-v5.rda'))
+# include manager Pct information
+cols_mgr <- c("mgrHighPct" ,"mgrMediumPct", "mgrLowPct" ,  "manager_id")
+training_set_mgr_Pct <- training_set[,cols_mgr]
+apartments_features <- left_join(apartments_features, unique(training_set_mgr_Pct), by="manager_id")
+# include building Pct information
+cols_bldg <- c("bldgHighPct", "bldgMediumPct" ,"bldgLowPct","building_id")
+training_set_bldg_Pct <- training_set[,cols_bldg]
+apartments_features <- left_join(apartments_features, unique(training_set_bldg_Pct), by="building_id")
+
+# saveRDS(apartments_features, 'data/test-v6.rds')
+# save(apartments_features, file='data/test-v6.rda')
 # write.csv(apartments_features, 'D:/test-v5.csv', row.names=F)
 #
 # saveRDS(features, 'D:/features-test-v2.rds')
