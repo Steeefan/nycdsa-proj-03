@@ -1,0 +1,7 @@
+train = fromJSON(file = 'data/train.json')
+featuresDF = data.frame(aptID = names(train$features), features=paste(train$features))
+featuresDF$features = gsub(pattern = 'c(', '', featuresDF$features)
+featuresDF$features = gsub(pattern = '[c(]', '', featuresDF$features)
+featuresDF$features = gsub(pattern = '[)]', '', featuresDF$features)
+featuresDF$features = gsub(pattern = '[\"]', '', featuresDF$features)
+featuresDF$features = gsub(pattern = 'list', '', featuresDF$features)
