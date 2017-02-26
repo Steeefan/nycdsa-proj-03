@@ -3,8 +3,9 @@ require(methods)
 require(caret)
 library(Ckmeans.1d.dp)
 
-# untunned: performance 0.6870
+# untunned: performance 0.61870
 
+#######################################Code for submission
 seed=1992
 
 # load training dataset
@@ -147,7 +148,7 @@ names(allpredictions)<-c("high","medium","low","listing_id")
 allpredictions=allpredictions[,c(1,2,3,4)]
 write.csv(allpredictions,paste0(Sys.time(),"-XGBModel-20Fold-Seed",seed,".csv"),row.names = FALSE)
 
-
+####################################TESTING ZONE
 
 
 
