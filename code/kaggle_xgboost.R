@@ -4,12 +4,13 @@ require(caret)
 library(Ckmeans.1d.dp)
 
 # untunned: performance 0.61870
+# with sum_vec(naive bayes on description): 0.60771
 
 #######################################Code for submission
 seed=1992
 
 # load training dataset
-apt = readRDS('data/train-v6.rds')
+apt = readRDS('data/train-v7.rds')
 
 clean <- function(apartments){
   #fix fomatting
@@ -30,7 +31,7 @@ clean <- function(apartments){
   apartments$display_address<-as.integer(factor(apartments$display_address))
   apartments$street_address<-as.integer(factor(apartments$street_address))
   
-  ##Length of description in words
+  ##Count of words in description
   apartments$description <- as.character(apartments$description)
   apartments$description_len<-sapply(strsplit(apartments$description, "\\s+"), length)
   apartments$description = NULL
@@ -47,7 +48,7 @@ clean <- function(apartments){
   apartments[which(is.infinite(apartments$room_price)),]$room_price = apartments[which(is.infinite(apartments$room_price)),]$price
   
   
-  #log transform features, these features aren't normally distributed
+  #log transform features as they aren't normally distributed
   apartments$photoCount <- log(apartments$photoCount + 1)
   apartments$featureCount <- log(apartments$featureCount + 1)
   apartments$price <- log(apartments$price + 1)
@@ -68,10 +69,15 @@ cols = c('bathrooms', 'bedrooms', "building_id" ,
          'price','latitude','longitude',
          "manager_id","street_address", 
          "created.Day" ,"created.WDay" ,"created.Hour",
-         "photoCount","featureCount")
+         "photoCount","featureCount", "sum_vec")
 pct = c('mgrHighPct', 'mgrMediumPct', 'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct')
-# Add features
-cols = c(cols,colnames(apt)[56:61])
+# Add features (previous column fro v6 train)
+#cols = c(cols,colnames(apt)[56:61])
+#cols = c(cols,colnames(apt)[31:51])
+#cols = c(cols,pct)
+# columns with new features
+cols = c(cols,colnames(apt)[54:59])
+# dummy variables for the features
 cols = c(cols,colnames(apt)[31:51])
 cols = c(cols,pct)
 
@@ -114,6 +120,8 @@ xgb_params = list(
   seed = seed
 )
 
+# train-mlogloss:0.465258	val-mlogloss:0.564447 
+
 #perform training
 gbdt = xgb.train(params = xgb_params,
                  data = dtrain,
@@ -128,7 +136,7 @@ imp <- xgb.importance(names(data[-1]),model = gbdt)
 xgb.ggplot.importance(imp)
 
 ###################### Make predictions on the test dataset
-test <- readRDS('data/test-v6.rds')
+test <- readRDS('data/test-v7.rds')
 test <- clean(test)
 test_subset <- test[cols]
 
@@ -143,7 +151,7 @@ allpredictions =  (as.data.frame(matrix(predict(gbdt,dtest), nrow=dim(test), byr
 
 ######################
 ##Generate Submission
-allpredictions = cbind (allpredictions, test$listing_id)
+allpredictions = cbind(allpredictions, test$listing_id)
 names(allpredictions)<-c("high","medium","low","listing_id")
 allpredictions=allpredictions[,c(1,2,3,4)]
 write.csv(allpredictions,paste0(Sys.time(),"-XGBModel-20Fold-Seed",seed,".csv"),row.names = FALSE)
