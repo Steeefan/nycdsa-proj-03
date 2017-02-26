@@ -3,12 +3,14 @@ require(methods)
 require(caret)
 library(Ckmeans.1d.dp)
 
+# untunned: performance 0.6870
+
 seed=1992
 
 # load training dataset
-apartments = readRDS('data/train-v6.rds')
+apt = readRDS('data/train-v6.rds')
 
-clean <- function(apartmens){
+clean <- function(apartments){
   #fix fomatting
   apartments$price = as.numeric(as.character(apartments$price))
   apartments$bathrooms = as.numeric(as.character(apartments$bathrooms))
@@ -54,18 +56,12 @@ clean <- function(apartmens){
   return(apartments)
 }
 
+apt <- clean(apt)
 
 #################################################################################################
-#Convert labels to integers
-apartments$interest_level<-as.integer(factor(apartments$interest_level))
+#Convert labels of intereset level to integers
+apt$interest_level<-as.integer(factor(apt$interest_level))
 
-cols2 = c("bathrooms","bedrooms",
-          "price","latitude","longitude",
-          "photoCount","featureCount", "description_len")
-cols2 = c(cols2,colnames(apartments)[57:61])
-cols2 = c(cols2,colnames(apartments)[31:51])
-cols2 = c(cols2,pct)
-          
 # Selecting x and y
 cols = c('bathrooms', 'bedrooms', "building_id" ,
          'price','latitude','longitude',
@@ -74,16 +70,17 @@ cols = c('bathrooms', 'bedrooms', "building_id" ,
          "photoCount","featureCount")
 pct = c('mgrHighPct', 'mgrMediumPct', 'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct')
 # Add features
-cols = c(cols,colnames(apartments)[56:61])
-cols = c(cols,colnames(apartments)[31:51])
+cols = c(cols,colnames(apt)[56:61])
+cols = c(cols,colnames(apt)[31:51])
 cols = c(cols,pct)
 
 outcome = 'interest_level'
 
 ######################### xgboost implementation
 # Filter columns
-data <- apartments[c(outcome,cols)]
+data <- apt[c(outcome,cols)]
 
+# transforming to a 0 to n vector for xgboost redabilitiy
 y <- data$interest_level
 y = y - 1
 
@@ -124,17 +121,15 @@ gbdt = xgb.train(params = xgb_params,
                  print_every_n = 25,
                  early_stopping_rounds=50)
 
-allpredictions =  (as.data.frame(matrix(predict(gbdt,dtest), nrow=dim(test), byrow=TRUE)))
-
 ####################################
 ###Generate Feature Importance Plot
-imp <- xgb.importance(names(train),model = gbdt)
+imp <- xgb.importance(names(data[-1]),model = gbdt)
 xgb.ggplot.importance(imp)
 
 ###################### Make predictions on the test dataset
 test <- readRDS('data/test-v6.rds')
 test <- clean(test)
-test_subset <- apartments[cols]
+test_subset <- test[cols]
 
 #convert xgbmatrix
 dtest <- xgb.DMatrix(data.matrix(test_subset))
@@ -148,9 +143,9 @@ allpredictions =  (as.data.frame(matrix(predict(gbdt,dtest), nrow=dim(test), byr
 ######################
 ##Generate Submission
 allpredictions = cbind (allpredictions, test$listing_id)
-names(allpredictions)<-c("high","low","medium","listing_id")
-allpredictions=allpredictions[,c(1,3,2,4)]
-write.csv(allpredictions,paste0(Sys.Date(),"-XGBModel-20Fold-Seed",seed,".csv"),row.names = FALSE)
+names(allpredictions)<-c("high","medium","low","listing_id")
+allpredictions=allpredictions[,c(1,2,3,4)]
+write.csv(allpredictions,paste0(Sys.time(),"-XGBModel-20Fold-Seed",seed,".csv"),row.names = FALSE)
 
 
 
