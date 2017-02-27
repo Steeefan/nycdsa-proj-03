@@ -8,9 +8,6 @@ library(mice)
 library(lubridate)
 library(tidyr)
 
-# Load train dataset
-training_set <- get(load('data/train-v5.rda'))
-
 # Read from JSON
 test = fromJSON(file = 'data/test.json')
 
@@ -73,19 +70,19 @@ monthweeks.character <- function(x) {
 testDF = testDF %>%
   mutate(
     created = as.POSIXct(strptime(created, tz = tz, format = tsFormat)),
-    
+
     created.Day = day(created),
     created.Month = month(created),
     created.Year = year(created),
-    
+
     created.Date = make_date(created.Year, created.Month, created.Day),
-    
+
     created.WDay = wday(created),
     created.WDayLbl = substr(wday(created, label = T), 1, 3),  # week starts on Sun in the US!
     created.Week = week(created),
-    
+
     created.Hour = hour(created),
-    
+
     created.Yday = yday(created),
     created.MWeek = monthweeks(created.Date)
   )
@@ -238,6 +235,8 @@ apartments_features <- left_join(testDF, new_features, by = 'aptID')
 apartments_features[, (ncol(testDF)+1):ncol(apartments_features)][is.na(apartments_features[, (ncol(testDF)+1):ncol(apartments_features)])] <- 0
 
 #Joining columns with proportions of High, Medium, Low for BuildingID, ManagerID
+# Load train dataset
+training_set <- get(load('data/v5/train-v5.rda'))
 # include manager Pct information
 cols_mgr <- c("mgrHighPct" ,"mgrMediumPct", "mgrLowPct" ,  "manager_id")
 training_set_mgr_Pct <- training_set[,cols_mgr]
@@ -251,9 +250,14 @@ apartments_features <- left_join(apartments_features, unique(training_set_bldg_P
 apartments_features[(ncol(apartments_features)-5):ncol(apartments_features)][is.na(apartments_features[(ncol(apartments_features)-5):ncol(apartments_features)])] <- 1/3
 
 
-# saveRDS(apartments_features, 'data/test-v6.rds')
-# save(apartments_features, file='data/test-v6.rda')
-# write.csv(apartments_features, 'D:/test-v5.csv', row.names=F)
+descVec = read.csv('data/description_vec_test_v2.csv')
+descVec$aptID = as.character(descVec$aptID)
+apartments_features = left_join(apartments_features, unique(descVec),  by='aptID')
+
+
+saveRDS(apartments_features, 'D:/test-v7.rds')
+save(apartments_features, file='D:/test-v7.rda')
+write.csv(apartments_features, 'D:/test-v7.csv', row.names=F)
 #
 # saveRDS(features, 'D:/features-test-v2.rds')
 # write.csv(features, 'D:/features-test-v2.csv', row.names=F)

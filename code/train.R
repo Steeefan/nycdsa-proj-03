@@ -236,15 +236,18 @@ cols = colnames(features)[3:length(colnames(features))]
 new_features = aggregate(features[cols], by=features['aptID'], FUN=max)
 apartments_features <- left_join(trainDF, new_features, by = 'aptID')
 apartments_features[, (ncol(trainDF)+1):ncol(apartments_features)][is.na(apartments_features[, (ncol(trainDF)+1):ncol(apartments_features)])] <- 0
+# descrPred = read.csv('data/Prediction_desc-v2.csv')
+# descrPred$aptID = as.character(descrPred$Apartment)
+# apartments_features = left_join(apartments_features, unique(descrPred),  by='aptID')
 
-descrPred = read.csv('data/Prediction_desc-v2.csv')
-descrPred$aptID = as.character(descrPred$Apartment)
-apartments_features = left_join(apartments_features, descrPred,  by='aptID')
+descVec = read.csv('data/description_vec_training_v2.csv')
+descVec$aptID = as.character(descVec$aptID)
+apartments_features = left_join(apartments_features, unique(descVec),  by='aptID')
 
-# saveRDS(apartments_features, 'D:/train-v5.rds')
-# save(apartments_features, file='D:/train-v5.rda')
-# write.csv(apartments_features, 'D:/train-v5.csv', row.names=F)
-#
+saveRDS(apartments_features, 'D:/train-v7.rds')
+save(apartments_features, file='D:/train-v7.rda')
+write.csv(apartments_features, 'D:/train-v7.csv', row.names=F)
+
 # saveRDS(trainFeatures, 'D:/features-train-v2.rds')
 # write.csv(trainFeatures, 'D:/features-train-v2.csv', row.names=F)
 #
