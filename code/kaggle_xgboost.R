@@ -3,14 +3,15 @@ require(methods)
 require(caret)
 library(Ckmeans.1d.dp)
 
-# untunned: performance 0.61870
 # with sum_vec(naive bayes on description): 0.60771
+# untunned: performance 0.61870
+# without mnger id and bldg id pct, logloss  = 0.62429 
 
 #######################################Code for submission
 seed=1992
 
 # load training dataset
-apt = readRDS('data/train-v7.rds')
+apt = readRDS('data/train-v8.rds')
 
 clean <- function(apartments){
   #fix fomatting
@@ -60,9 +61,20 @@ clean <- function(apartments){
 
 apt <- clean(apt)
 
-#################################################################################################
-#Convert labels of intereset level to integers
+# MUST RUN(to return in the right order later on): Convert labels of intereset level to integers
 apt$interest_level<-as.integer(factor(apt$interest_level))
+
+##############################################################################################
+# CAN BE EDITTED (add columns)
+# do a left join on apt here for the columns you would like to add to the analysis
+# eg. apt = left_join(apt, df, by='aptID')
+
+# [INSERT CODE HERE]
+
+# CAN BE EDITTED (selection of columns)
+# if you are trying to add more columns (let's call this variables ex)
+# cols = c(cols, ex)
+# which columns are going to be used on xgboost are selected in cols 
 
 # Selecting x and y
 cols = c('bathrooms', 'bedrooms', "building_id" ,
@@ -71,23 +83,26 @@ cols = c('bathrooms', 'bedrooms', "building_id" ,
          "created.Day" ,"created.WDay" ,"created.Hour",
          "photoCount","featureCount", "sum_vec")
 pct = c('mgrHighPct', 'mgrMediumPct', 'mgrLowPct','bldgHighPct', 'bldgMediumPct', 'bldgLowPct')
-# Add features (previous column fro v6 train)
+
+# Add features (previous column from v6 train)
 #cols = c(cols,colnames(apt)[56:61])
 #cols = c(cols,colnames(apt)[31:51])
 #cols = c(cols,pct)
+
 # columns with new features
-cols = c(cols,colnames(apt)[54:59])
+cols = c(cols,colnames(apt)[54:60])
 # dummy variables for the features
 cols = c(cols,colnames(apt)[31:51])
 cols = c(cols,pct)
 
 outcome = 'interest_level'
+##########################################################################################
 
 ######################### xgboost implementation
 # Filter columns
 data <- apt[c(outcome,cols)]
 
-# transforming to a 0 to n vector for xgboost redabilitiy
+# MUST RUN: transforming to a 0 to n vector for xgboost redabilitiy
 y <- data$interest_level
 y = y - 1
 
@@ -120,7 +135,9 @@ xgb_params = list(
   seed = seed
 )
 
-# train-mlogloss:0.465258	val-mlogloss:0.564447 
+# train-mlogloss:0.461610	val-mlogloss:0.546861
+# with logloss
+# train-mlogloss:0.460458	val-mlogloss:0.538812 
 
 #perform training
 gbdt = xgb.train(params = xgb_params,
@@ -136,7 +153,7 @@ imp <- xgb.importance(names(data[-1]),model = gbdt)
 xgb.ggplot.importance(imp)
 
 ###################### Make predictions on the test dataset
-test <- readRDS('data/test-v7.rds')
+test <- readRDS('data/test-v8.rds')
 test <- clean(test)
 test_subset <- test[cols]
 
@@ -154,7 +171,7 @@ allpredictions =  (as.data.frame(matrix(predict(gbdt,dtest), nrow=dim(test), byr
 allpredictions = cbind(allpredictions, test$listing_id)
 names(allpredictions)<-c("high","medium","low","listing_id")
 allpredictions=allpredictions[,c(1,2,3,4)]
-write.csv(allpredictions,paste0(Sys.time(),"-XGBModel-20Fold-Seed",seed,".csv"),row.names = FALSE)
+write.csv(allpredictions,paste0(Sys.time(),"-XGBModel-Seed",seed,".csv"),row.names = FALSE)
 
 ####################################TESTING ZONE
 
