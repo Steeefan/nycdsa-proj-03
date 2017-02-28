@@ -9,7 +9,6 @@ clean <- function(apartments){
   ##Count of words in description
   apartments$description <- as.character(apartments$description)
   apartments$description_len<-sapply(strsplit(apartments$description, "\\s+"), length)
-  apartments$description = NULL
   
   #price to bedroom ratio
   apartments$bed_price <- apartments$price/apartments$bedrooms
