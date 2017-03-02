@@ -23,7 +23,7 @@ with open(fileName, 'a') as file:
 # get a list of names for each listing_id
 listing_ids = glob.glob('[0-9]*')  # filters down a list with only directories which are numbers-Listing id
 
-i = 0
+i = 172500
 for listing in listing_ids[0:]:
     try:
         listing_id = listing
@@ -52,7 +52,7 @@ for listing in listing_ids[0:]:
                 continue
 
             except:
-                print 'Some other error on', photok
+                print 'Some other error on', photo
                 continue
     except IOError, e:
         print "Problem opening", listing_id, ":", e
