@@ -8,10 +8,11 @@ library(VIM)
 
 source('multiloss.R')
 
-localH2O <- h2o.init(ip='localhost', port=54321)
+localH2O <- h2o.init(ip='localhost', port=54321, nthreads=-1)
+h2o.removeAll()
 
-aptsTrain = unique(readRDS('data/v12/train-v12.rds'))
-aptsTest = unique(readRDS('data/v12/test-v12.rds'))
+aptsTrain = unique(readRDS('data/v16/train-v16.rds'))
+aptsTest = unique(readRDS('data/v16/test-v16.rds'))
 aptsTest$price = as.numeric(aptsTest$price)
 aptsTest$bathrooms = as.numeric(aptsTest$bathrooms)
 aptsTest$bedrooms = as.numeric(aptsTest$bedrooms)
@@ -31,57 +32,79 @@ test = (-train)
 #   select(
 #     aptsTrain,
 #     price, bathrooms, bedrooms, photoCount, featureCount,
-#     building_id, sum_vec,
-#     # created.Hour, latitude, longitude,
-#     # mgrLowPct, mgrMediumPct, mgrHighPct
-#     no_fee, hardwood_floors, laundry_in_building, laundry_in_unit,
-#     pre_war, fitness_center
-#   )
-# )
 #
+#     # bed_price, room_sum, room_diff, room_price, bed_ratio,
+#     # avg_price, avg_bed_price, avg_room_price, price_diff,
+#     # bed_price_diff, room_price_diff,
+#
+#     cluster
+#   )
+#)
+
 # aptsTrainN = predict(
 #   preProc,
 #   select(
 #     aptsTrain,
+#     #Y
+#     interest_level,
+#
+#     #Basic apartment stuff
 #     price, bathrooms, bedrooms, photoCount, featureCount,
-#     building_id, sum_vec,
-#     # created.Hour, latitude, longitude,
-#     mgrLowPct, mgrMediumPct, mgrHighPct,
+#
+#     #Prices, rooms
+#     # bed_price, room_price, avg_price, avg_bed_price, avg_room_price,
+#     # price_diff, bed_price_diff, room_price_diff,
+#     # room_sum, room_diff, bed_ratio,
+#
+#     #Building
+#     building_id, Building_Top_1_Perc, Building_Top_5_Perc, Building_Top_10_Perc,
+#
+#     #Manager
+#     manager_id, Manager_Top_1_Perc, Manager_Top_5_Perc, Manager_Top_10_Perc,
+#
+#     #Sentiment
+#     anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative,
+#     positive,
+#
+#     #Features
 #     no_fee, hardwood_floors, laundry_in_building, laundry_in_unit,
-#     pre_war, fitness_center,
-#     interest_level
+#     pre_war, fitness_center, dishwasher,
+#
+#     #Location
+#     cluster
 #   )
 # )
+#aptsTrainN$interest_level<-as.integer(factor(aptsTrainN$interest_level))
 
-sapply(select(aptsTrainN, anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative), sum)
+# sapply(select(aptsTrainN, anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative), sum)
 #apply(select(aptsTrainN, anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative), 2, plyr::count)
 
-aptsTrainN = select(
-  aptsTrain,
-  #Y
-  interest_level,
-
-  #Basic apartment stuff
-  price, bathrooms, bedrooms, photoCount, featureCount,
-
-  #Building
-  building_id, Building_Top_1_Perc, Building_Top_5_Perc, Building_Top_10_Perc,
-  Building_Top_25_Perc, Building_Top_50_Perc,
-
-  #Manager
-  manager_id, Manager_Top_1_Perc, Manager_Top_5_Perc, Manager_Top_10_Perc,
-  Manager_Top_25_Perc, Manager_Top_50_Perc,
-  mgrHighPct, mgrMediumPct, mgrLowPct,
-
-  #Sentiment
-  # anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative,
-  # positive
-
-  no_fee, hardwood_floors, laundry_in_building, laundry_in_unit,
-  pre_war, fitness_center
-)
-aptsTrainN$interest_level = factor(aptsTrainN$interest_level, levels(aptsTrainN$interest_level)[c(1, 3, 2)])
-
+# aptsTrainN = select(
+#   aptsTrain,
+#   #Y
+#   interest_level,
+#
+#   #Basic apartment stuff
+#   price, bathrooms, bedrooms, photoCount, featureCount,
+#
+#   #Building
+#   building_id, Building_Top_1_Perc, Building_Top_5_Perc, Building_Top_10_Perc,
+#   Building_Top_25_Perc, Building_Top_50_Perc,
+#
+#   #Manager
+#   manager_id, Manager_Top_1_Perc, Manager_Top_5_Perc, Manager_Top_10_Perc,
+#   Manager_Top_25_Perc, Manager_Top_50_Perc,
+#   mgrHighPct, mgrMediumPct, mgrLowPct,
+#
+#   #Sentiment
+#   # anger, anticipation, disgust, fear, joy, sadness, surprise, trust, negative,
+#   # positive
+#
+#   no_fee, hardwood_floors, laundry_in_building, laundry_in_unit,
+#   pre_war, fitness_center
+# )
+# aptsTrainN$interest_level = factor(aptsTrainN$interest_level, levels(aptsTrainN$interest_level)[c(1, 3, 2)])
+#
 # preProc = preProcess(
 #   select(
 #     aptsTest,
@@ -107,9 +130,27 @@ aptsTrainN$interest_level = factor(aptsTrainN$interest_level, levels(aptsTrainN$
 #   )
 # )
 
-aptsTestN = select(
+# aptsTestN = select(
+#   aptsTest,
+#   price, bathrooms, bedrooms, photoCount, featureCount
+# )
+
+aptsTrainN = subset(
+  aptsTrain,
+  select = -c(
+    aptID, building_id, description, display_address, listing_id,
+    manager_id, street_address, created, created.Date, created.WDayLbl,
+    mgrHighPct, mgrMediumPct, mgrLowPct, bldgHighPct, bldgMediumPct, bldgLowPct
+  )
+)
+
+aptsTestN = subset(
   aptsTest,
-  price, bathrooms, bedrooms, photoCount, featureCount
+  select = -c(
+    aptID, building_id, description, display_address, listing_id, manager_id,
+    street_address, created, created.Date, mgrHighPct, mgrMediumPct, mgrLowPct,
+    bldgHighPct, bldgMediumPct, bldgLowPct, created.WDayLbl
+  )
 )
 
 #real outcomes split into train and test set
@@ -123,6 +164,8 @@ aptsTrainTest = aptsTrainN[test, ]
 #data for h2o
 aptsTrainTrainHex = as.h2o(aptsTrainTrain)
 aptsTrainTestHex = as.h2o(aptsTrainTest)
+aptsTrainHex = as.h2o(aptsTrainN)
+
 aptsTestHex = as.h2o(aptsTestN)
 
 # glm1 = h2o.glm(
@@ -141,7 +184,8 @@ aptsTestHex = as.h2o(aptsTestN)
 ################################################################################
 
 hyper_params = list(
-  alpha = seq(0, 1, 0.1)
+  alpha = seq(0, 1, 0.1),
+  lambda = c(1e-4, 1e-5, 1e-6, 1e-7, 1e-8)
 )
 
 glmGrid = h2o.grid(
@@ -151,25 +195,22 @@ glmGrid = h2o.grid(
   training_frame=aptsTrainTrainHex,
   validation_frame=aptsTrainTestHex,
   y='interest_level',
-  x=colnames(aptsTrainN)[2:length(aptsTrainN)],
+  x=colnames(select(aptsTrainN, -interest_level)),
   family='multinomial',
-  nfolds=10
+  nfolds=10,
+  solver='L_BFGS'
 )
 
-stopping_metric = 'accuracy'
-sorted_models = h2o.getGrid(
-  grid_id='glmGrid',
-  sort_by=stopping_metric,
-  decreasing=TRUE
-)
+#stopping_metric = 'accuracy'
+models = h2o.getGrid(grid_id='glmGrid')
 # best_model = h2o.getModel(sorted_models@model_ids[[1]])
 # h2o.logloss(h2o.performance(best_model))
 
-for (i in 1:length(sorted_models@model_ids)) {
+for (i in 1:length(models@model_ids)) {
   if (i == 1) {
     results = data.frame()
   }
-  predsOnTrain = as.data.table(h2o.predict(h2o.getModel(sorted_models@model_ids[[i]]), aptsTrainTrainHex))
+  predsOnTrain = as.data.table(h2o.predict(h2o.getModel(models@model_ids[[i]]), aptsTrainTrainHex))
   trainPreds = data.table(predsOnTrain[,.(high, medium, low)])
   results = rbind(results, data.frame(i, multiloss(predicted=trainPreds, actual=train_outcomes_realTrainTrain)))
 }
