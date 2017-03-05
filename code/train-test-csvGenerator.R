@@ -10,19 +10,19 @@ library(tidyr)
 library(syuzhet)
 library(DT)
 
-source('functions.R')
+source('code/functions.R')
 
 # Read from JSON
-train = fromJSON(file='train.json')
-test = fromJSON(file='test.json')
+train = fromJSON(file='data/train.json')
+test = fromJSON(file='data/test.json')
 
 # Generate
 trainDF = generateDFFromJSON(train, 'train')
 testDF = generateDFFromJSON(test, 'test')
 
 #Building, manager percentiles
-trainDF2 = bldgMgrPct(trainDF, testDF, 'train')
-testDF2 = bldgMgrPct(trainDF, testDF, 'test')
+trainDF = bldgMgrPct(trainDF, testDF, 'train')
+testDF = bldgMgrPct(trainDF, testDF, 'test')
 
 # Photo DF
 trainPhotos = generatePhotosDFFromJSON(train)
