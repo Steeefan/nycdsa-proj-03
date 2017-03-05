@@ -1,0 +1,60 @@
+<style>
+body {
+  overflow: scroll;
+}
+</style>
+kaggle_presentation
+========================================================
+author: Yvonne Lau
+date: 03/05/2017
+autosize: true
+
+Feature Engineering -  Price
+========================================================
+![price_distribution](img/price_distribution.png)
+
+After some data cleaning: 
+- # of bedrooms ranges from 0 to 4
+- # of bathrooms ranges 1 xx to 7
+Feature Engineering -  Price
+========================================================
+- Problem: In the rental market, price heavily influences level of interest. However a $2500 1-br won't raise the same level of interest as a 3-br for the same price
+- Solution: For a more 'apples-to-apples' comparison, price/room and price/bed features were created
+
+Feature Engineering - Location Clustering
+========================================================
+- Problem: Level of interest is also dependant on price with respect to location. A $2000 1br apartment should lead to a higher level of interest in Hell's Kitchen than in The Bronx. However, original dataset only has lat/long information.
+![renthop_map](img/renthop_subway_map.png)
+
+Feature Engineering - DBSCAN Clustering
+========================================================
+- Solution: Use a clustering algorithm to create neighborhoods. 
+  - Chosen method: DBSCAN 
+- DBSCAN: 
+  - Density based clustering algorithm
+  - Given a set of points in some space, DBSCAN groups together points that are closely packed together (points with many nearby neighbors), and marks points as outliers if they lie alone in low-density regions. 
+  - Only two variables are needed: eps and min_samples
+- Results: 2487 neighborhoods created from this clustering method
+
+Feature Engineering - Price & Location
+========================================================
+- Intuition: Given the averange rental price for a neighnborhood, level of interest on a listing is expected to be higher for listings whose price are below market average.
+- Problem: Competition matters. Dataset did not come with any information on whether a listing's price was "above market" or "below market"
+- Solution: To generate "above market", "below market" features, we used clusters from DBSCAN clustering to compute the following metrics: 
+  - price difference: difference between listing's price and neighborhood's average price
+  - price per room diffference and price per bedroom difference were computed in a similar fashion. 
+
+Feature Engineering - Photos & K-Means clustering
+========================================================
+- Intuition: Professionally taken photos with good quality and appropriate size tend to fare better than low-quality photos taken from a cell phone camera
+![sample_photo](img/sample_photo.jpg)
+- To get some basic image features, RGB values and size of images were extracted from pictures using Python's "PIL" and "os" library
+- Images were then also clustered using k-means
+
+Extra Slides: Feature Engineering - DBSCAN Algorithm
+========================================================
+- Step 1: For each point in the dataset, we draw a n-dimensional sphere of radius epsilon around the point (if you have n-dimensional data).
+- Step 2: If the number of points inside the sphere is larger than min_samples, we set the center of the sphere as a cluster, and all the points within the sphere are belong to this cluster.
+- Step 3: Loop through all the points within the sphere with the above 2 steps, and expand the cluster whenever it satisfy the 2 rules.
+- Step 4: For the points not belong to any cluster, you can ignore them, or treat them as outliers. 
+
