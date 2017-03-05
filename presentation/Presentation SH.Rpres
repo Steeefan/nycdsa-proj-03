@@ -1,0 +1,90 @@
+Presentation SH
+========================================================
+author: Stefan Heinz
+date:
+autosize: true
+
+Introduction
+========================================================
+
+* Primary task: Employ machine learning techniques to accurately make predictions
+given a dataset
+* Framework: Two Sigma Connect: Rental Listing Inquiries from Kaggle
+* Goals:
+  + Create a model that predicts well
+  + Describe data insights drawn from exploration
+* Datasets were provided as `json` files
+  + training: 49,352 observations x 14 variables
+  + test: 74,659 observations x 13 variables
+* Optional: 78.5gb 7z file containing more than 700,000 JPGs
+
+
+Feature engineering: Timestamps
+========================================================
+* Timestamp `created` in standard format `YYYY-MM-DD HH:MM:SS`
+* `as.POSIXct()` to convert from `character` to actual `timestamp`
+* Library `lubridate` to create 10 variables derived from timestamp, such as
+  + Week
+  + Weekday
+  + Hour
+  + ...
+* Timestamps might not be in EST but rather PST, because Renthop is hosted in San Francisco
+
+
+Feature engineering: Sentiment Analysis
+========================================================
+* `description` column might be interesting, however format, content, ... differ
+widely
+* Sentiment analysis using library `syuzhet` to get an idea how the description
+might be perceived by users of the website
+* This resulted in 8 new dummy variables conveying the strenght of the following
+emotions for each description:
+  + anger, anticipation
+  + disgust, fear
+  + joy, sadness
+  + surprise, trust
+  + negative, positive
+* These columns in our case contained values in the interval [0 .. 58], with higher
+values indicating _needs word_
+
+
+Feature engineering: Apartment features and photos
+========================================================
+* In the original data files obtained from kaggle - `train.json` and `test.json`,
+two columns - `photos` and `features` were acutally lists, i.e. multiple values
+for each row
+* For each of these columns we decided to omit them from the overall apartment
+dataset and created two separate files for them, consisting of:
+  + aptID, feature
+     - train: 267,906 rows
+     - test: 404,920 rows
+  + aptID, photo
+     - train: 276,614 rows
+     - test: 419,598 rows
+
+
+Feature engineering: Photos
+========================================================
+* Python script to get basic information from 695,619 photos (excl. broken files)
+  + Width, height in pixels
+  + RGB values
+  + Brightness (based on RGB values)
+* Aggregating above values into single columns for each apartment observation
+  + avg and median for
+     - width, height
+     - pxRatio, pxSize, difference of pxRatio from golden ratio (1.618034)
+     - RGB values
+
+
+Feature engineering: Putting it all together
+========================================================
+* Feature engineering was done by every member of the team
+* Some people used R while others explored options in Python
+* Led to a fragemented codebase with various features being added from different
+team members and sources over time
+* R script to make sure that the final data frame we used - version 16 - could
+easily be reproduced:
+  + Integrated all the various R code chunks and the results from the computations
+  done in Python (`csv`)
+  + Create data frame, then RDS file based on input data - `train` or `test`
+  + Create data frames, then RDS files for photos, features
