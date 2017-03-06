@@ -1,3 +1,8 @@
+<style>
+body {
+    overflow: scroll;
+}
+</style>
 Presentation SH
 ========================================================
 author: Stefan Heinz
@@ -7,9 +12,10 @@ autosize: true
 Introduction
 ========================================================
 
+* Framework: [Two Sigma Connect: Rental Listing Inquiries](https://www.kaggle.com/c/two-sigma-connect-rental-listing-inquiries)
+* Question: How much interest will a new rental listing on RentHop receive?
 * Primary task: Employ machine learning techniques to accurately make predictions
 given a dataset
-* Framework: Two Sigma Connect: Rental Listing Inquiries from Kaggle
 * Goals:
   + Create a model that predicts well
   + Describe data insights drawn from exploration
@@ -19,11 +25,39 @@ given a dataset
 * Optional: 78.5gb 7z file containing more than 700,000 JPGs
 
 
+Basic EDA: Interest level
+========================================================
+* The training dataset was very imbalanced, meaning there were much more apartments
+having a low `interest_level` than those having medium (3.1x) or high (8.9x).
+
+![Apartments per interest level](img/apt-x-interest_level.png)
+
+
+Basic EDA: Price x Interest level
+========================================================
+
+* From histogram and density plot it can be seen that lower-priced apartments tend
+to more frequently have an interest level of 'high' than higher-priced ones
+
+|      |      |
+|-----:|:-----|
+|![Price distribution per interest level](img/price-distribution-interest-level.png)|![Price density per interest level](img/price-density-interest-level.png)|
+
+
+Basic EDA: Location
+========================================================
+* This map shows the distribution of apartments per interest level all over
+New York City
+
+![Interest level map](img/interest_level_map.png)
+
+
 Feature engineering: Timestamps
 ========================================================
 * Timestamp `created` in standard format `YYYY-MM-DD HH:MM:SS`
-* `as.POSIXct()` to convert from `character` to actual `timestamp`
-* Library `lubridate` to create 10 variables derived from timestamp, such as
+* `as.POSIXct()` to convert from `character` to actual `timestamp` for enabling
+date/time arithmetics
+* R library `lubridate` to create 10 variables derived from `created`, such as
   + Week
   + Weekday
   + Hour
@@ -35,9 +69,9 @@ Feature engineering: Sentiment Analysis
 ========================================================
 * `description` column might be interesting, however format, content, ... differ
 widely
-* Sentiment analysis using library `syuzhet` to get an idea how the description
+* Sentiment analysis using R library `syuzhet` to get an idea how the description
 might be perceived by users of the website
-* This resulted in 8 new dummy variables conveying the strenght of the following
+* This resulted in 8 new dummy variables conveying the strength of the following
 emotions for each description:
   + anger, anticipation
   + disgust, fear
@@ -45,16 +79,16 @@ emotions for each description:
   + surprise, trust
   + negative, positive
 * These columns in our case contained values in the interval [0 .. 58], with higher
-values indicating _needs word_
+values indicating a stronger presence of a particular emotion
 
 
 Feature engineering: Apartment features and photos
 ========================================================
-* In the original data files obtained from kaggle - `train.json` and `test.json`,
-two columns - `photos` and `features` were acutally lists, i.e. multiple values
-for each row
-* For each of these columns we decided to omit them from the overall apartment
-dataset and created two separate files for them, consisting of:
+* In the original data files obtained from kaggle - `train.json` and `test.json` - ,
+two columns - `photos` and `features` - were acutally lists, i.e. contained
+multiple values for each row
+* We decided to omit both these columns from the overall apartment dataset
+and created two separate files for them, consisting of:
   + aptID, feature
      - train: 267,906 rows
      - test: 404,920 rows
@@ -65,26 +99,29 @@ dataset and created two separate files for them, consisting of:
 
 Feature engineering: Photos
 ========================================================
-* Python script to get basic information from 695,619 photos (excl. broken files)
+* Python script using libraries `PIL` to get basic information from 695,619
+photos (excl. broken files)
   + Width, height in pixels
   + RGB values
   + Brightness (based on RGB values)
-* Aggregating above values into single columns for each apartment observation
-  + avg and median for
-     - width, height
-     - pxRatio, pxSize, difference of pxRatio from golden ratio (1.618034)
+* Aggregating above values into single columns for each apartment observation,
+i.e. grouping by `listing_id`
+  + `avg()` and `median()` for
+     - Width, height
+     - Pixel ratio and size, difference of ratio from golden ratio (1.618034)
      - RGB values
+* Images were clustered using k-means clustering
 
 
 Feature engineering: Putting it all together
 ========================================================
 * Feature engineering was done by every member of the team
-* Some people used R while others explored options in Python
-* Led to a fragemented codebase with various features being added from different
+* Some of them used R while others explored options in Python
+* This led to a fragemented codebase with various features being added from different
 team members and sources over time
-* R script to make sure that the final data frame we used - version 16 - could
+* R script to make sure that the final data frame we used - v17 - could
 easily be reproduced:
   + Integrated all the various R code chunks and the results from the computations
-  done in Python (`csv`)
+  done in Python (`csv` files)
   + Create data frame, then RDS file based on input data - `train` or `test`
   + Create data frames, then RDS files for photos, features
