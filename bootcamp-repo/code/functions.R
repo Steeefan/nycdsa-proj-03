@@ -343,9 +343,9 @@ generateDFFromJSON = function(json, type) {
 
   # Description to vector summary
   if (type == 'train') {
-    descVec = read.csv('data/description_vec_training_v2.csv')
+    descVec = read.csv('../data/description_vec_training_v2.csv')
   } else if (type == 'test') {
-    descVec = read.csv('data/description_vec_test_v2.csv')
+    descVec = read.csv('../data/description_vec_test_v2.csv')
   }
 
   descVec$aptID = as.character(descVec$aptID)
@@ -354,9 +354,9 @@ generateDFFromJSON = function(json, type) {
 
   # load location clusters from python
   if (type == 'train') {
-    cluster = read.csv(file='data/train_location_cluster2.csv', header=T)
+    cluster = read.csv(file='../data/train_location_cluster2.csv', header=T)
   } else if (type == 'test') {
-    cluster = read.csv(file='data/test_location_cluster2.csv', header=T)
+    cluster = read.csv(file='../data/test_location_cluster2.csv', header=T)
   }
   cluster = select(cluster, aptID, cluster)
 
@@ -379,7 +379,7 @@ generateDFFromJSON = function(json, type) {
 
   # Photo features
   goldenRatio = 1.61803398875
-  photoFeat = readRDS('data/photo_features.rds')
+  photoFeat = readRDS('../data/photo_features.rds')
   photoFeat$pxSize = photoFeat$height * photoFeat$width
   photoFeat$pxRatio = ifelse(
     (photoFeat$width / photoFeat$height) < 1,
@@ -419,14 +419,14 @@ generateDFFromJSON = function(json, type) {
   # TFIDF on description
   # data from python script
   if (type == 'train') {
-    tfidf = read.csv('data/description_prob_train_logit_v4.csv')
+    tfidf = read.csv('../data/description_prob_train_logit_v4.csv')
   } else if (type == 'test') {
-    tfidf = read.csv('data/description_prob_test_logit_v4.csv')
+    tfidf = read.csv('../data/description_prob_test_logit_v4.csv')
   }
   tfidf$aptID = as.character(tfidf$aptID)
   df = left_join(df, tfidf, by='aptID')
 
-  photos_cluster = read.csv(file = 'data/photos_cluster.csv', stringsAsFactors = F)
+  photos_cluster = read.csv(file = '../data/photos_cluster.csv', stringsAsFactors = F)
   photos_cluster = photos_cluster %>%
     group_by(listing_id, photos_cluster)%>%
     summarise(n=n())
