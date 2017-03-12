@@ -1,0 +1,87 @@
+Model Selection
+========================================================
+
+- Supervised Learning
+- Classification Problem
+- Non-linear decision boundary
+- 49,000 rows.  50+ columns after feature engineering
+- Limited computing power
+
+Models We Tested
+========================================================
+
+* Multiple Logistic Regression
+* Trees 
+  + Random forest better than MLR
+  + Ideal tool for uneven decision boundary
+* Support Vector Machine
+  + May have been ideal but proved to be too computationally intensive.
+* Neural Network
+* We used five fold validation for all models.
+
+Multiple Logistic Regression:
+========================================================
+
+* Assumptions of MLR made it's implementation problematic.
+  + Decision boundary is not linear.
+  + Example: Interest goes up and down based on latitude and longitude, but not continuously in either direction.
+* Multiple Logistic Regression struggles with multicollinearity.
+  + In the course of feature engineering, many featuers proved highly correlated.
+  + Avoiding multicolinearity would have forced us to eliminate useful features we engineered.
+  
+
+Trees Worked Best:
+========================================================
+
+- Trees are ideal for identifying uneven decision boundaries.
+- Gradient boosting trees work by dividing the sample space by one or several parameters to reduce the output of an objective function.
+* The objective function is a measure of model performance given a set of parameters.
+  + Objective function contains a loss function (mean squared error, log loss, etc.)
+  + Objective function also contains a regularization parameter which penalizes complexity.
+
+Trees cont: 0.564 log loss in XGBoost
+========================================================
+
+- XGBoost was the best mix of power, flexibility, and ease-of-use to permit extensive tuning.
+- XGBoost is faster than GBM due to parallel processing.
+* Offers more flexible tuning than GBM or Random Forest.
+  + GBM stops splitting only when subsequent nodes increase loss.
+  + Our xgboost model was limited by tree depth and additional pruning parameters unavailable on GBM.
+* XGBoost helped us reduce bias and variance through better regularization than GBM, but we still were overfitting to the data based on our log loss scores on our training versus test set.
+- Cross-validation is built in.
+
+
+Tuning Model
+========================================================
+
+- After getting scores from kaggle, we submitted our parameters and results to a google doc.
+- With that data, we trained a random forest.
+- We created a dataframe with 10,000 random values for each parameter, and predicted kaggle score based on that data.
+- The model quickly converged to a local minimum offering little insight.
+- Next steps are automating this process for a larger sample size and introducing randomness to produce superior results.
+
+
+Neural Network 
+========================================================
+
+* Why?
+  + Different learning algos may produce uncorrelated error.
+  + In these cases, averaging them will smooth the decision boundary and reduce bias.
+* We used a Neural Network in python using scikit learn and keras.
+* The network took 62 hours to run, limiting our ability to tune it for more precision.
+* Produced 0.602 log loss; inferior to XGBoost.
+
+Stacking
+========================================================
+- Support Vector Machine proved too computationally intensive to produce a good model.
+* We tried stacking our Neural Network and our best XGBoost model through two methods.
+  + Arithmetic Mean (Results_XGBoost + Results_NeuralNet)/2
+  + Geometric Mean  (Results_XGBoost * Results_NeuralNet) ^ (0.5)
+- This indicates that the biases were in fact correlated, and possibly caused by our feature engineering, or the way we structured our models.
+- Had we tuned our Neural Network better, it is possible that we would have achieved better results.
+
+
+
+
+
+

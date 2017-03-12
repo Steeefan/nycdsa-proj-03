@@ -1,0 +1,51 @@
+Jessie_Kaggle_Description
+========================================================
+author: 
+date: 
+autosize: true
+
+Description analysis methods
+========================================================
+
+- Text feature extraction: Tf-Idf
+- Logistic regression analysis
+- Append analyses as new features
+
+Text feature extracion: Tf-Idf
+========================================================
+
+To re-weight the count features into floating point values suitable for usage by classifier
+- Description cleaning: extracting nouns and adjectives
+![alt text](img/cleaned.png)
+
+
+Text feature extracion: Tf-Idf
+========================================================
+
+- Compute the top 1000 max_features ordered by term frequency across the corpus.
+- Tf-Idf(t,d) = tf(t,d) * Idf(t)
+![alt text](img/tfidf.png)
+
+
+Logistic regression analysis
+========================================================
+
+Prediction of training dataset
+* Split the training set into equal parts.
+* Train 2 logit models with the two subsets.
+* Predict each subset with the model trained on the opposite subset.
+![alt text](img/example.png)
+
+Logistic regression analysis
+========================================================
+
+Prediction of test dataset
+* Train logit model with entire training dataset.
+* Predict interest levels with trained logit model.
+
+Append new features
+========================================================
+
+* Include predicted probabilities of interest levels.
+* Append "medium" & "high" interest levels as new feature.
+![alt text](img/proba.png)
